@@ -16,6 +16,7 @@ keywords = ["IDS", "SHACL", "IFC", "IFCtoLBD", "OPM", "RDF"]
 ids2shacl = "ids2shacl.cli:main"
 
 [project.optional-dependencies]
+validation = ["pyshacl>=0.30,<0.31"]
 test = ["rdflib>=7.1,<8", "pyshacl>=0.30,<0.31"]
 
 [tool.setuptools]

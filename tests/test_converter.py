@@ -11,6 +11,7 @@ from ids2shacl.parser import parse_file
 
 FIXTURE = Path(__file__).parent / "fixtures" / "sample.ids"
 EXAMPLE = Path(__file__).parents[1] / "requirements.ids"
+VALIDATOR = Path(__file__).parents[1] / "validate_lbd.py"
 
 
 class ParserTests(unittest.TestCase):
@@ -94,6 +95,17 @@ class ConverterTests(unittest.TestCase):
             )
             self.assertEqual(0, completed.returncode, completed.stderr)
             self.assertIn("sh:NodeShape", output.read_text())
+
+
+class ValidatorProgramTests(unittest.TestCase):
+    def test_standalone_validator_help(self):
+        completed = subprocess.run(
+            [sys.executable, str(VALIDATOR), "--help"],
+            check=False, capture_output=True, text=True,
+        )
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertIn("generated SHACL Turtle file", completed.stdout)
+        self.assertIn("IFCtoLBD/LBD Turtle data file", completed.stdout)
 
 
 if __name__ == "__main__":

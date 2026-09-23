@@ -146,10 +146,48 @@ py -m ids2shacl requirements.ids --opm-level 3 --output requirements.ttl
 ```
 
 This creates `requirements.ttl` in the current directory. Validate an IFCtoLBD
-export with pySHACL Advanced Features enabled:
+export with the included validator as described below.
+
+### Validate an IFCtoLBD graph
+
+[`validate_lbd.py`](validate_lbd.py) is a separate program that reads the
+generated SHACL Turtle file and an IFCtoLBD/LBD Turtle file. It prints the
+human-readable SHACL validation report and can save the report as RDF.
+
+Install the validation dependency from the repository root:
 
 ```bat
-pyshacl -a -s requirements.ttl model.ttl
+py -m pip install -e ".[validation]"
+```
+
+Run validation on Windows:
+
+```bat
+py validate_lbd.py requirements.ttl model.ttl
+```
+
+Save the machine-readable report as Turtle as well:
+
+```bat
+py validate_lbd.py requirements.ttl model.ttl --report validation-report.ttl
+```
+
+The report contains standard SHACL resources such as `sh:ValidationReport` and
+`sh:ValidationResult`, so it can be stored and queried as part of a Linked
+Building Data workflow. The program enables SHACL Advanced Features because the
+generated shapes use SPARQL targets and constraints.
+
+Exit status is `0` when the graph conforms, `1` when constraint violations are
+found, and `2` for missing dependencies, unreadable RDF, or other execution
+errors. This makes the program suitable for scripts and CI pipelines.
+
+If the LBD vocabulary axioms are stored separately from the data, supply their
+Turtle graph and optionally request inference:
+
+```bat
+py validate_lbd.py requirements.ttl model.ttl ^
+  --ontology lbd-ontologies.ttl --inference rdfs ^
+  --report validation-report.ttl
 ```
 
 Use the same `--opm-level` that was selected for the IFCtoLBD export:
