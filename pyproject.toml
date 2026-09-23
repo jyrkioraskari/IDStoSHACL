@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ids2shacl"
+version = "0.1.0"
+description = "Convert buildingSMART IDS 1.0 files to SHACL for IFCtoLBD RDF"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [{name = "IDStoSHACL contributors"}]
+keywords = ["IDS", "SHACL", "IFC", "IFCtoLBD", "OPM", "RDF"]
+
+[project.scripts]
+ids2shacl = "ids2shacl.cli:main"
+
+[project.optional-dependencies]
+test = ["rdflib>=7.1,<8", "pyshacl>=0.30,<0.31"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

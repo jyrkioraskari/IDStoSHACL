@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://standards.buildingsmart.org/IDS https://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+  <info>
+    <title>Example architectural information requirements</title>
+    <version>1.0</version>
+    <description>
+      Demonstration IDS for converting wall and door requirements to SHACL
+      for an IFCtoLBD Linked Building Data graph.
+    </description>
+    <author>example@example.org</author>
+    <date>2026-09-23</date>
+    <purpose>Demonstration and testing</purpose>
+    <milestone>Design delivery</milestone>
+  </info>
+
+  <specifications>
+    <specification name="External walls must have a fire rating"
+                   identifier="external-wall-fire-rating"
+                   ifcVersion="IFC4 IFC4X3_ADD2"
+                   description="Checks identification and fire-safety information for external walls.">
+      <applicability minOccurs="1" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <simpleValue>IFCWALL</simpleValue>
+          </name>
+        </entity>
+        <property dataType="IFCBOOLEAN">
+          <propertySet>
+            <simpleValue>Pset_WallCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>IsExternal</simpleValue>
+          </baseName>
+          <value>
+            <simpleValue>true</simpleValue>
+          </value>
+        </property>
+      </applicability>
+
+      <requirements description="Required information for every applicable external wall.">
+        <attribute cardinality="required"
+                   instructions="Give every wall a human-readable IFC Name.">
+          <name>
+            <simpleValue>Name</simpleValue>
+          </name>
+        </attribute>
+
+        <property dataType="IFCLABEL"
+                  cardinality="required"
+                  instructions="Use one of the accepted fire-resistance ratings.">
+          <propertySet>
+            <simpleValue>Pset_WallCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>FireRating</simpleValue>
+          </baseName>
+          <value>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="30 min"/>
+              <xs:enumeration value="60 min"/>
+              <xs:enumeration value="90 min"/>
+            </xs:restriction>
+          </value>
+        </property>
+
+        <property dataType="IFCBOOLEAN" cardinality="prohibited">
+          <propertySet>
+            <simpleValue>Pset_WallCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>Combustible</simpleValue>
+          </baseName>
+          <value>
+            <simpleValue>true</simpleValue>
+          </value>
+        </property>
+      </requirements>
+    </specification>
+
+    <specification name="Doors must be identified"
+                   identifier="door-identification"
+                   ifcVersion="IFC4 IFC4X3_ADD2"
+                   description="Checks the reference and optional thermal information for doors.">
+      <applicability minOccurs="1" maxOccurs="unbounded">
+        <entity>
+          <name>
+            <simpleValue>IFCDOOR</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+
+      <requirements description="Identification is mandatory; thermal data is checked when supplied.">
+        <attribute cardinality="required">
+          <name>
+            <simpleValue>Name</simpleValue>
+          </name>
+        </attribute>
+
+        <property dataType="IFCIDENTIFIER" cardinality="required">
+          <propertySet>
+            <simpleValue>Pset_DoorCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>Reference</simpleValue>
+          </baseName>
+        </property>
+
+        <property dataType="IFCTHERMALTRANSMITTANCEMEASURE"
+                  cardinality="optional"
+                  instructions="When supplied, the U-value must be greater than zero and no more than 5 W/(m²K).">
+          <propertySet>
+            <simpleValue>Pset_DoorCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>ThermalTransmittance</simpleValue>
+          </baseName>
+          <value>
+            <xs:restriction base="xs:double">
+              <xs:minExclusive value="0"/>
+              <xs:maxInclusive value="5"/>
+            </xs:restriction>
+          </value>
+        </property>
+      </requirements>
+    </specification>
+  </specifications>
+</ids>

@@ -1,0 +1,236 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix bot: <https://w3id.org/bot#> .
+@prefix opm: <https://w3id.org/opm#> .
+@prefix schema: <http://schema.org/> .
+@prefix props: <http://lbd.arch.rwth-aachen.de/props#> .
+@prefix supply: <https://w3id.org/ifctolbd/supply-chain#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ids-sh: <https://w3id.org/ids2shacl/vocab#> .
+
+# Generated from IDS: Example architectural information requirements
+# IFCtoLBD OPM level: 3
+
+<urn:ids2shacl:shape/ShapesGraph> a owl:Ontology ;
+    dcterms:title "Example architectural information requirements — SHACL shapes" ;
+    dcterms:description "Demonstration IDS for converting wall and door requirements to SHACL\n      for an IFCtoLBD Linked Building Data graph." ;
+    dcterms:conformsTo <https://standards.buildingsmart.org/IDS/>,
+        <https://www.w3.org/TR/shacl/>,
+        <https://w3id.org/bot>,
+        <https://w3id.org/opm> ;
+    rdfs:seeAlso <https://w3c-lbd-cg.github.io/>,
+        <https://github.com/jyrkioraskari/IFCtoLBD> ;
+    ids-sh:opmLevel 3 ;
+    ids-sh:targetRepresentation "IFCtoLBD Linked Building Data" ;
+    dcterms:creator "example@example.org" ;
+    owl:versionInfo "1.0" ;
+    dcterms:type "Demonstration and testing" ;
+    dcterms:coverage "Design delivery" ;
+    dcterms:created "2026-09-23"^^xsd:date .
+
+ids-sh:Prefixes a owl:Ontology ;
+    sh:declare
+        [ sh:prefix "rdf" ; sh:namespace "http://www.w3.org/1999/02/22-rdf-syntax-ns#"^^xsd:anyURI ] ,
+        [ sh:prefix "rdfs" ; sh:namespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ] ,
+        [ sh:prefix "xsd" ; sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ] ,
+        [ sh:prefix "bot" ; sh:namespace "https://w3id.org/bot#"^^xsd:anyURI ] ,
+        [ sh:prefix "opm" ; sh:namespace "https://w3id.org/opm#"^^xsd:anyURI ] ,
+        [ sh:prefix "schema" ; sh:namespace "http://schema.org/"^^xsd:anyURI ] ,
+        [ sh:prefix "props" ; sh:namespace "http://lbd.arch.rwth-aachen.de/props#"^^xsd:anyURI ] ,
+        [ sh:prefix "supply" ; sh:namespace "https://w3id.org/ifctolbd/supply-chain#"^^xsd:anyURI ] ,
+        [ sh:prefix "dcterms" ; sh:namespace "http://purl.org/dc/terms/"^^xsd:anyURI ] .
+<urn:ids2shacl:shape/external-wall-fire-ratingShape> a sh:NodeShape ;
+    sh:name "External walls must have a fire rating" ;
+    rdfs:label "External walls must have a fire rating" ;
+    sh:severity sh:Violation ;
+    ids-sh:ifcVersion "IFC4 IFC4X3_ADD2" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:prefixes ids-sh:Prefixes ;
+        sh:select """
+            SELECT DISTINCT ?this WHERE {
+              ?this rdf:type/rdfs:subClassOf* ?entityType_a0 .
+              FILTER (?entityType_a0 IN (<https://pi.pauwel.be/voc/buildingelement#Wall>, <https://w3id.org/product#Wall>))
+              ?this props:isExternal ?property_a1 .
+              ?property_a1 rdfs:label ?propertyLabel_a1 .
+              BIND(STRBEFORE(STR(?propertyLabel_a1), ':') AS ?propertySet_a1)
+              FILTER (STR(?propertySet_a1) = "Pset_WallCommon")
+              ?property_a1 opm:hasPropertyState ?state_a1 .
+              ?state_a1 rdf:type opm:CurrentPropertyState ; schema:value ?value_a1 .
+              FILTER ((STR(?value_a1) = "true") && (LCASE(STR(?value_a1)) IN ('true', 'false')))
+            }
+        """
+    ] ;
+    sh:sparql [
+        sh:prefixes ids-sh:Prefixes ;
+        sh:message "External walls must have a fire rating: attribute requirement (required) [name=Name]. Give every wall a human-readable IFC Name." ;
+        sh:select """
+            SELECT $this WHERE {
+              FILTER NOT EXISTS {
+                $this props:nameIfcRoot ?property_r .
+                ?property_r opm:hasPropertyState ?state_r .
+                ?state_r rdf:type opm:CurrentPropertyState ; schema:value ?value_r .
+              }
+            }
+        """
+    ] ;
+    sh:sparql [
+        sh:prefixes ids-sh:Prefixes ;
+        sh:message "External walls must have a fire rating: property requirement (required) [propertySet=Pset_WallCommon, baseName=FireRating]. Use one of the accepted fire-resistance ratings." ;
+        sh:select """
+            SELECT $this WHERE {
+              FILTER (
+                NOT EXISTS {
+                  $this props:fireRating ?property_r .
+                  ?property_r rdfs:label ?propertyLabel_r .
+                  BIND(STRBEFORE(STR(?propertyLabel_r), ':') AS ?propertySet_r)
+                  FILTER (STR(?propertySet_r) = "Pset_WallCommon")
+                  ?property_r opm:hasPropertyState ?state_r .
+                  ?state_r rdf:type opm:CurrentPropertyState ; schema:value ?value_r .
+                } ||
+                EXISTS {
+                  $this props:fireRating ?property_r .
+                  ?property_r rdfs:label ?propertyLabel_r .
+                  BIND(STRBEFORE(STR(?propertyLabel_r), ':') AS ?propertySet_r)
+                  FILTER (STR(?propertySet_r) = "Pset_WallCommon")
+                  ?property_r opm:hasPropertyState ?state_r .
+                  ?state_r rdf:type opm:CurrentPropertyState ; schema:value ?value_r .
+                  FILTER (!(((STR(?value_r) IN ("30 min", "60 min", "90 min"))) && (isLiteral(?value_r))))
+                }
+              )
+            }
+        """
+    ] ;
+    sh:sparql [
+        sh:prefixes ids-sh:Prefixes ;
+        sh:message "External walls must have a fire rating: property requirement (prohibited) [propertySet=Pset_WallCommon, baseName=Combustible, value=true]" ;
+        sh:select """
+            SELECT $this WHERE {
+              FILTER EXISTS {
+                $this props:combustible ?property_r .
+                ?property_r rdfs:label ?propertyLabel_r .
+                BIND(STRBEFORE(STR(?propertyLabel_r), ':') AS ?propertySet_r)
+                FILTER (STR(?propertySet_r) = "Pset_WallCommon")
+                ?property_r opm:hasPropertyState ?state_r .
+                ?state_r rdf:type opm:CurrentPropertyState ; schema:value ?value_r .
+                FILTER ((STR(?value_r) = "true") && (LCASE(STR(?value_r)) IN ('true', 'false')))
+              }
+            }
+        """
+    ] .
+
+<urn:ids2shacl:shape/external-wall-fire-ratingCardinalityShape> a sh:NodeShape ;
+    sh:severity sh:Violation ;
+    sh:targetNode ids-sh:DataGraph ;
+    sh:sparql [
+        sh:prefixes ids-sh:Prefixes ;
+        sh:message "IDS applicability cardinality is not satisfied: External walls must have a fire rating" ;
+        sh:select """
+            SELECT $this WHERE {
+              { SELECT (COUNT(DISTINCT ?candidate) AS ?count) WHERE {
+                  ?candidate rdf:type/rdfs:subClassOf* ?entityType_a0 .
+                  FILTER (?entityType_a0 IN (<https://pi.pauwel.be/voc/buildingelement#Wall>, <https://w3id.org/product#Wall>))
+                  ?candidate props:isExternal ?property_a1 .
+                  ?property_a1 rdfs:label ?propertyLabel_a1 .
+                  BIND(STRBEFORE(STR(?propertyLabel_a1), ':') AS ?propertySet_a1)
+                  FILTER (STR(?propertySet_a1) = "Pset_WallCommon")
+                  ?property_a1 opm:hasPropertyState ?state_a1 .
+                  ?state_a1 rdf:type opm:CurrentPropertyState ; schema:value ?value_a1 .
+                  FILTER ((STR(?value_a1) = "true") && (LCASE(STR(?value_a1)) IN ('true', 'false')))
+              } }
+              FILTER (?count < 1)
+            }
+        """
+    ] .
+<urn:ids2shacl:shape/door-identificationShape> a sh:NodeShape ;
+    sh:name "Doors must be identified" ;
+    rdfs:label "Doors must be identified" ;
+    sh:severity sh:Violation ;
+    ids-sh:ifcVersion "IFC4 IFC4X3_ADD2" ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:prefixes ids-sh:Prefixes ;
+        sh:select """
+            SELECT DISTINCT ?this WHERE {
+              ?this rdf:type/rdfs:subClassOf* ?entityType_a0 .
+              FILTER (?entityType_a0 IN (<https://pi.pauwel.be/voc/buildingelement#Door>, <https://w3id.org/product#Door>))
+            }
+        """
+    ] ;
+    sh:sparql [
+        sh:prefixes ids-sh:Prefixes ;
+        sh:message "Doors must be identified: attribute requirement (required) [name=Name]" ;
+        sh:select """
+            SELECT $this WHERE {
+              FILTER NOT EXISTS {
+                $this props:nameIfcRoot ?property_r .
+                ?property_r opm:hasPropertyState ?state_r .
+                ?state_r rdf:type opm:CurrentPropertyState ; schema:value ?value_r .
+              }
+            }
+        """
+    ] ;
+    sh:sparql [
+        sh:prefixes ids-sh:Prefixes ;
+        sh:message "Doors must be identified: property requirement (required) [propertySet=Pset_DoorCommon, baseName=Reference]" ;
+        sh:select """
+            SELECT $this WHERE {
+              FILTER (
+                NOT EXISTS {
+                  $this props:reference ?property_r .
+                  ?property_r rdfs:label ?propertyLabel_r .
+                  BIND(STRBEFORE(STR(?propertyLabel_r), ':') AS ?propertySet_r)
+                  FILTER (STR(?propertySet_r) = "Pset_DoorCommon")
+                  ?property_r opm:hasPropertyState ?state_r .
+                  ?state_r rdf:type opm:CurrentPropertyState ; schema:value ?value_r .
+                } ||
+                EXISTS {
+                  $this props:reference ?property_r .
+                  ?property_r rdfs:label ?propertyLabel_r .
+                  BIND(STRBEFORE(STR(?propertyLabel_r), ':') AS ?propertySet_r)
+                  FILTER (STR(?propertySet_r) = "Pset_DoorCommon")
+                  ?property_r opm:hasPropertyState ?state_r .
+                  ?state_r rdf:type opm:CurrentPropertyState ; schema:value ?value_r .
+                  FILTER (!((isLiteral(?value_r))))
+                }
+              )
+            }
+        """
+    ] ;
+    sh:sparql [
+        sh:prefixes ids-sh:Prefixes ;
+        sh:message "Doors must be identified: property requirement (optional) [propertySet=Pset_DoorCommon, baseName=ThermalTransmittance]. When supplied, the U-value must be greater than zero and no more than 5 W/(m²K)." ;
+        sh:select """
+            SELECT $this WHERE {
+              FILTER EXISTS {
+                $this props:thermalTransmittance ?property_r .
+                ?property_r rdfs:label ?propertyLabel_r .
+                BIND(STRBEFORE(STR(?propertyLabel_r), ':') AS ?propertySet_r)
+                FILTER (STR(?propertySet_r) = "Pset_DoorCommon")
+                ?property_r opm:hasPropertyState ?state_r .
+                ?state_r rdf:type opm:CurrentPropertyState ; schema:value ?value_r .
+                FILTER (!(((xsd:double(?value_r) <= xsd:double("5")) && (xsd:double(?value_r) > xsd:double("0"))) && (isNumeric(?value_r))))
+              }
+            }
+        """
+    ] .
+
+<urn:ids2shacl:shape/door-identificationCardinalityShape> a sh:NodeShape ;
+    sh:severity sh:Violation ;
+    sh:targetNode ids-sh:DataGraph ;
+    sh:sparql [
+        sh:prefixes ids-sh:Prefixes ;
+        sh:message "IDS applicability cardinality is not satisfied: Doors must be identified" ;
+        sh:select """
+            SELECT $this WHERE {
+              { SELECT (COUNT(DISTINCT ?candidate) AS ?count) WHERE {
+                  ?candidate rdf:type/rdfs:subClassOf* ?entityType_a0 .
+                  FILTER (?entityType_a0 IN (<https://pi.pauwel.be/voc/buildingelement#Door>, <https://w3id.org/product#Door>))
+              } }
+              FILTER (?count < 1)
+            }
+        """
+    ] .
